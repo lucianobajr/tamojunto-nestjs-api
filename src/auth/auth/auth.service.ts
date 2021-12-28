@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { AuthDto } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
@@ -29,11 +29,23 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new Error('User not found!');
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found!',
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
 
-    if (!bcrypt.compare(auth.password, user.password_hash)) {
-      throw new Error('Passwords not matchs!');
+    if (!(await bcrypt.compare(auth.password, user.password_hash))) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Passwords not matchs!',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     return user;

@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -12,6 +14,7 @@ import { User as UserModel } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtGuard } from 'src/auth/auth/jwt.guard';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -24,10 +27,24 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() user: UserModel): Promise<UserModel> {
-    const { course, name, email, preferences, password_hash } = user;
+  async create(@Body() user: CreateUserDto): Promise<UserModel> {
+    const { course, name, email, preferences, password } = user;
 
-    const hash = await bcrypt.hash(password_hash, 8);
+    const userExists = await this.prismaService.user.findFirst({
+      where: { email },
+    });
+
+    if (userExists) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'User already exists!',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const password_hash = await bcrypt.hash(password, 8);
 
     const newUser: UserModel = await this.prismaService.user.create({
       data: {
@@ -35,7 +52,7 @@ export class UsersController {
         name,
         email,
         preferences,
-        password_hash: hash,
+        password_hash,
       },
     });
 
@@ -57,6 +74,20 @@ export class UsersController {
   @UseGuards(JwtGuard)
   @Delete(':id')
   async delete(@Param('id') id: number): Promise<UserModel> {
+    const userExists = await this.prismaService.user.findFirst({
+      where: { id: Number(id) },
+    });
+
+    if (!userExists) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'User not exists!',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     return await this.prismaService.user.delete({ where: { id: Number(id) } });
   }
 }
