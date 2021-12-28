@@ -6,15 +6,18 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { User as UserModel } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { JwtGuard } from 'src/auth/auth/jwt.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly prismaService: PrismaService) {}
 
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(): Promise<UserModel[]> {
     return this.prismaService.user.findMany();
@@ -39,6 +42,7 @@ export class UsersController {
     return newUser;
   }
 
+  @UseGuards(JwtGuard)
   @Put(':id')
   async updateUser(
     @Param('id') id: number,
@@ -50,6 +54,7 @@ export class UsersController {
     });
   }
 
+  @UseGuards(JwtGuard)
   @Delete(':id')
   async delete(@Param('id') id: number): Promise<UserModel> {
     return await this.prismaService.user.delete({ where: { id: Number(id) } });

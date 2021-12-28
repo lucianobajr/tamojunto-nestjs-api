@@ -11,6 +11,7 @@ import { EventsModule } from './events/events.module';
 import { MessageModule } from './message/message.module';
 import { UserGroupsModule } from './userGroups/userGroups.module';
 import { AdminGroupsModule } from './adminGroups/adminGroups.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AdminGroupsModule } from './adminGroups/adminGroups.module';
     MessageModule,
     UserGroupsModule,
     AdminGroupsModule,
+    AuthModule,
   ],
   controllers: [UsersController],
   providers: [PrismaService],
