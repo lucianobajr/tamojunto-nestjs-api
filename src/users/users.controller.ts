@@ -15,10 +15,14 @@ import { PrismaService } from 'src/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtGuard } from 'src/auth/auth/jwt.guard';
 import { CreateUserDto } from './dto/create-user.dto';
+import SendMailProducerService from 'src/jobs/sendMail-producer.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private sendMailService: SendMailProducerService,
+  ) {}
 
   @UseGuards(JwtGuard)
   @Get()
@@ -55,6 +59,8 @@ export class UsersController {
         password_hash,
       },
     });
+
+    await this.sendMailService.sendMail(user);
 
     return newUser;
   }
