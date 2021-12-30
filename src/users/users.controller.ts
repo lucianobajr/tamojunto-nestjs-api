@@ -60,8 +60,6 @@ export class UsersController {
       },
     });
 
-    await this.sendMailService.sendMail(user);
-
     return newUser;
   }
 
